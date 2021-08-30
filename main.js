@@ -4,13 +4,19 @@ let secOperand = 0; // nummer 2
 let firOperator = ""; // operator 1
 let result = 0;
 let clicked = false; // disable decimal-button
+let historyArr = [];
 
 const add = (a, b) => a + b;
 const substract = (a, b) => a - b;
 const multiply = (a, b) => a * b;
 const divide = (a, b) => {
-  if (b === 0) return "ERROR";
-  else return a / b;
+  if (b == 0) {
+    alert(">:(");
+    alert("not devidable by 0");
+    return 0;
+  } else {
+    return a / b;
+  }
 };
 
 const operate = (a, op, b) => {
@@ -27,9 +33,41 @@ const operate = (a, op, b) => {
 
 // DOM
 const calc = document.querySelector(".calc");
-const display = document.querySelector(".display");
+const display = document.querySelector(".displayVal");
 const numbers = document.querySelectorAll(".num");
 const deci = document.querySelector("#point");
+const history = document.querySelector(".history");
+
+window.addEventListener("keyup", (e) => {
+  if (e.key === "Shift") {
+    return;
+  } else if (e.key === "=") {
+    const key = document.querySelector(`button[data-key='Enter']`);
+    key.click();
+  } else {
+    const key = document.querySelector(`button[data-key='${e.key}']`);
+    key.click();
+  }
+});
+
+const showHistory = (num1, opr, num2) => {
+  if (opr === "/") {
+    opr = `÷`;
+  } else if (opr === "*") {
+    opr = "×";
+  }
+  if (historyArr.join(" ").length >= 83) {
+    while (historyArr.join(" ").length >= 45) {
+      historyArr.shift();
+    }
+    history.textContent = `${historyArr.join(" ")}`;
+  } else if (result === num1) {
+    historyArr.push(" ", opr, num2);
+  } else {
+    historyArr.push(num1, opr, num2);
+  }
+  history.textContent = `${historyArr.join(" ")}`;
+};
 
 const outputDisplay = () => (display.textContent = `${displayValue}`); //zeigt die Nummer am display an
 const outputResult = () => (display.textContent = `${result}`); //zeigt Ergebnis an
@@ -41,12 +79,14 @@ const operatorDecision = (e) => {
 };
 
 const giveResult = (num1, opr, num2) => {
+  showHistory(num1, opr, num2);
   result = operate(Number(num1), opr, Number(num2));
   if (result % 1 !== 0) {
-    result = parseFloat(result).toFixed(2);
+    result = parseFloat(result).toFixed(3);
   }
   outputResult();
   firOperand = result;
+
   secOperand = 0;
   displayValue = 0;
 };
@@ -80,6 +120,12 @@ calc.addEventListener("click", (e) => {
       enableDecimals();
       firOperator = operatorDecision(e);
     } else if (firOperand && firOperator !== "") {
+      secOperand = displayValue;
+      enableDecimals();
+      giveResult(firOperand, firOperator, secOperand);
+      firOperator = operatorDecision(e);
+    } else if (!firOperand && firOperator && displayValue) {
+      firOperand = 0;
       secOperand = displayValue;
       enableDecimals();
       giveResult(firOperand, firOperator, secOperand);
@@ -124,7 +170,8 @@ calc.addEventListener("click", (e) => {
     secOperand = 0;
     firOperand = 0;
     firOperator = "";
-
+    historyArr = [];
+    history.textContent = "";
     result = 0;
     clicked = false;
 
